@@ -4,33 +4,28 @@ import time
 
 from config import db
 from utils.generate_uuid import compress_uuid
+
 from utils.gameError import GameException
 
 
 class GameClub(object):
 
     def __init__(self, *args, **kwargs):
-        """俱乐部初始化　name, chair_uuid, game_types
-        name:俱乐部名称　char_uuid:主席用户id"""
-        try:
-            self.name = kwargs.get('name', '')
-            self.chairman = kwargs.get('chair_uuid')
-            self.game_type = kwargs.get('game_types')
-            self.uuid = compress_uuid()
-            self.create_time = time.time()
+        """俱乐部初始化 传入uuid 若存在俱乐部则读取俱乐部数据,否则创建新的俱乐部"""
+        db.cur.close()
+        db.cur = db.conn.cursor()
+        self.uuid = kwargs.get('uuid')
+        db.cur.callproc('get_club_by_uuid', (self.uuid, ))
+        result = db.cur.fetchall()
+        assert len(result) == 1
+        self.name, self.pay_type, self.max_person, self.game_card, self.chairman, \
+            self.game_type, self.status, self.create_time = result[0]
 
-            # 调用存储过程，创建一条俱乐部信息
-            db.cur.callproc('create_game_club', (self.chairman, self.create_time, self.uuid,
-                                                 self.name, self.game_type))
+        # 其余俱乐部初始化工作
 
-            result = db.cur.fetchall()[0]
-            print 'result-----: {}'.format(result)
-            self.pay_type, self.max_person, self.game_card, self.game_types, self.status = result
-            print self.pay_type, self.max_person, self.game_card, self.game_types, self.status
-        except GameException as game_error:
-            print "club init error: {}".format(game_error.message)
-        except Exception as e:
-            print "club init error: {}".format(e.message)
+    # def __repr__(self):
+    #     print '<class: GameClub>: {}'.format(self.name)
+
 
     # TODO 仅正主席可设置
     def set_pay_type(self, **kwargs):
