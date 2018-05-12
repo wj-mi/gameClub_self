@@ -7,14 +7,14 @@ from config import db
 
 from club import GameClub
 from utils.generate_uuid import compress_uuid
-from utils.gameError import GameException
+from utils.gameError import GameException, new_cur
 
 
 class ClubManager(object):
 
     def __init__(self):
         """服务器启动时加载一次,读取所有的club到内存中"""
-        # 通过club_uuid为键存取club
+        # _clubs (dict)k: v==> club_uuid: club object
         self._clubs = self.prepare_clubs()
 
     def prepare_clubs(self):
@@ -23,8 +23,8 @@ class ClubManager(object):
         db.cur.callproc('find_active_clubs')
         results = db.cur.fetchall()
         active_clubs = {item[0]: GameClub(uuid=item[0]) for item in results}
-        for k, v in active_clubs.items():
-            print k, v
+        # for k, v in active_clubs.items():
+        #     print k, v
         return active_clubs
 
     def create_new_club(self, *args, **kwargs):
@@ -41,12 +41,6 @@ class ClubManager(object):
             # 调用存储过程，创建一条俱乐部信息
             db.cur.callproc('create_game_club', (chairman, create_time, uuid,
                                                  name, game_type))
-
-            # result = db.cur.fetchall()[0]
-            # print 'result-----: {}'.format(result)
-            # self.pay_type, self.max_person, self.game_card, self.game_types, self.status = result
-            # print self.pay_type, self.max_person, self.game_card, self.game_types, self.status
-
             # 生成club对象加载到内存中
             self._clubs['uuid'] = GameClub(uuid=uuid)
             result['status'] = 'ok'
@@ -62,7 +56,55 @@ class ClubManager(object):
         finally:
             return result
 
+    def applying_for_club(self, *args, **kwargs):
+        """申请加入俱乐部, 通过club_id, 申请加入俱乐部
+        user_id, club_id=None, club_name=None
+        """
+        result = {}
+        try:
+            # TODO 暂由客户端确保user和club id的正确
+            new_cur(db)
+            club_id = kwargs.get("club_id")
+            user = kwargs.get("user_id")
+            appling_time = time.time()
+            if not club_id:
+                raise GameException("club_id or club_name is need!")
+            db.cur.callproc('club_appling', (club_id, user, appling_time))
 
-if __name__ == '__main__':
+            result['status'] = 'ok'
+            result['msg'] = 'apply success'
+        except GameException as game_err:
+            result['result'] = 'failed'
+            result['msg'] = game_err.message
+        except Exception as e:
+            result['result'] = 'failed'
+            result['msg'] = e.message
+        finally:
+            return result
+
+# ------------------
+def test_create_apply(manager, club_id):
+    """user申请创建加入俱乐部"""
+    user = 18263  # uid
+    # club_id = 'ec29cdeaa4647e4cf1b38ea06ec83b503b'
+    manager.applying_for_club(club_id=club_id, user_id=user)
+
+
+def test_get_appling_list(manager, club_id):
+    club_obj = manager._clubs[club_id]
+    print club_obj.name
+    appling_list = club_obj.appling_user_list()
+    print 'appling_list: {}'.format(appling_list)
+
+
+def main():
     manager = ClubManager()
     print manager.__dict__
+    club_id = 'ec29eaa4647e4cf1b38ea06ec83b503b'
+
+    test_create_apply(manager, club_id)
+    test_get_appling_list(manager, club_id)
+
+if __name__ == '__main__':
+    main()
+

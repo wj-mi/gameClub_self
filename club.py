@@ -5,7 +5,7 @@ import time
 from config import db
 from utils.generate_uuid import compress_uuid
 
-from utils.gameError import GameException
+from utils.gameError import GameException, new_cur
 
 
 class GameClub(object):
@@ -25,7 +25,6 @@ class GameClub(object):
 
     # def __repr__(self):
     #     print '<class: GameClub>: {}'.format(self.name)
-
 
     # TODO 仅正主席可设置
     def set_pay_type(self, **kwargs):
@@ -84,6 +83,38 @@ class GameClub(object):
         finally:
             return result
 
+    def appling_user_list(self):
+        """查看俱乐部未处理申请消息"""
+        result = {}
+        new_cur(db)
+        db.cur.callproc('find_appling', (self.uuid,))
+        data = db.cur.fetchall()
+        print data
+        result['status'] = 'ok'
+        result['data'] = list(data)
+        return result
+
+    # TODO权限
+    def appling_handler(self, **kwargs):
+        """处理用户加入俱乐部请求
+        apply_id: 用户申请表id
+        status: 审核结果 1: 通过 -1: 拒绝 0:暂未处理
+        """
+        result = {}
+        try:
+            # 改变申请状态,若status=1 通过, user加入club关联表
+            status = kwargs.get('status')
+            appling_id = kwargs.get('appling_id')
+
+            # call proc
+            db.cur.callproc("club_appling_handler", (appling_id, status, time.time()))
+
+        except Exception as e:
+            result['status'] = 'failed'
+            result['msg'] = e.message
+        finally:
+            return result
+
     def turn_cards_to_user(self, **kwargs):
         """给用户转卡 转让俱乐部库存给用户
         user: user id , num:充值数量
@@ -101,17 +132,6 @@ class GameClub(object):
 
 
 
-
-def applying_for_club(user_id, club_id=None, club_name=None):
-    """申请加入俱乐部, 通过club_id, 或club_name申请加入俱乐部"""
-    result = {}
-    try:
-        if not club_id and not club_name:
-            raise GameException("club_id or club_name is need!")
-
-    except GameException as game_err:
-      result['result'] = 'failed'
-      result['msg'] = game_err.message
 
 
 if __name__ == '__main__':

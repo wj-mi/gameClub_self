@@ -1,6 +1,5 @@
 # -*-coding:utf-8 -*-
 
-import unittest
 from gameClub.club import GameClub
 from gameClub.clubManager import ClubManager
 from gameClub.config import db
@@ -24,7 +23,7 @@ class TestDemo(object):
 def test_create_apply(club_id):
     """user申请创建加入俱乐部"""
     user = 18263  # uid
-    # club_id = 'ec29eaa4647e4cf1b38ea06ec83b503b'
+    # club_id = 'ec29cdeaa4647e4cf1b38ea06ec83b503b'
     manager.applying_for_club(club_id=club_id, user_id=user)
 
 
