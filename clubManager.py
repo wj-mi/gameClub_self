@@ -82,29 +82,4 @@ class ClubManager(object):
         finally:
             return result
 
-# ------------------
-def test_create_apply(manager, club_id):
-    """user申请创建加入俱乐部"""
-    user = 18263  # uid
-    # club_id = 'ec29cdeaa4647e4cf1b38ea06ec83b503b'
-    manager.applying_for_club(club_id=club_id, user_id=user)
-
-
-def test_get_appling_list(manager, club_id):
-    club_obj = manager._clubs[club_id]
-    print club_obj.name
-    appling_list = club_obj.appling_user_list()
-    print 'appling_list: {}'.format(appling_list)
-
-
-def main():
-    manager = ClubManager()
-    print manager.__dict__
-    club_id = 'ec29eaa4647e4cf1b38ea06ec83b503b'
-
-    test_create_apply(manager, club_id)
-    test_get_appling_list(manager, club_id)
-
-if __name__ == '__main__':
-    main()
 

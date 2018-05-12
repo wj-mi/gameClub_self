@@ -100,6 +100,7 @@ class GameClub(object):
         apply_id: 用户申请表id
         status: 审核结果 1: 通过 -1: 拒绝 0:暂未处理
         """
+        new_cur(db)
         result = {}
         try:
             # 改变申请状态,若status=1 通过, user加入club关联表
@@ -108,12 +109,23 @@ class GameClub(object):
 
             # call proc
             db.cur.callproc("club_appling_handler", (appling_id, status, time.time()))
-
+            result['status'] = 'ok'
+            result['msg'] = 'success'
         except Exception as e:
             result['status'] = 'failed'
             result['msg'] = e.message
         finally:
             return result
+
+    def get_member(self, **kwargs):
+        """获取俱乐部所有会员"""
+        new_cur(db)
+        result = {}
+        db.cur.callproc('get_club_member', (self.uuid,))
+        data = db.cur.fetchall()
+        result['status'] = 'ok'
+        result['data'] = list(data)
+        return result
 
     def turn_cards_to_user(self, **kwargs):
         """给用户转卡 转让俱乐部库存给用户
