@@ -23,8 +23,7 @@ class ClubManager(object):
         db.cur.callproc('find_active_clubs')
         results = db.cur.fetchall()
         active_clubs = {item[0]: GameClub(uuid=item[0]) for item in results}
-        # for k, v in active_clubs.items():
-        #     print k, v
+        
         return active_clubs
 
     def create_new_club(self, *args, **kwargs):
@@ -39,6 +38,7 @@ class ClubManager(object):
             create_time = time.time()
 
             # 调用存储过程，创建一条俱乐部信息
+            new_cur(db)
             db.cur.callproc('create_game_club', (chairman, create_time, uuid,
                                                  name, game_type))
             # 生成club对象加载到内存中
@@ -81,5 +81,4 @@ class ClubManager(object):
             result['msg'] = e.message
         finally:
             return result
-
 

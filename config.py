@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-
+"""mysql 配置，全局暂用一个连接"""
 import MySQLdb
 
 

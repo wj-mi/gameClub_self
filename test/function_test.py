@@ -52,6 +52,7 @@ def main(club_id):
 if __name__ == '__main__':
     club_id = 'ec29eaa4647e4cf1b38ea06ec83b503b'
     main(club_id)
+    db.close()
 
 
 

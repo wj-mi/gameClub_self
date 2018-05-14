@@ -12,8 +12,7 @@ class GameClub(object):
 
     def __init__(self, *args, **kwargs):
         """俱乐部初始化 传入uuid 若存在俱乐部则读取俱乐部数据,否则创建新的俱乐部"""
-        db.cur.close()
-        db.cur = db.conn.cursor()
+        new_cur(db)
         self.uuid = kwargs.get('uuid')
         db.cur.callproc('get_club_by_uuid', (self.uuid, ))
         result = db.cur.fetchall()
