@@ -18,7 +18,7 @@ class GameClub(object):
         result = db.cur.fetchall()
         assert len(result) == 1
         self.name, self.pay_type, self.max_person, self.game_card, self.chairman, \
-            self.game_type, self.status, self.create_time = result[0]
+            self.game_type, self.status, self.create_time， self.member_num = result[0]
 
         # 其余俱乐部初始化工作
 
